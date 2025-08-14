@@ -166,9 +166,9 @@ mod main_integration_tests {
         assert!(std::path::Path::new(&expected_dir).join("relationship_network.txt").exists());
         assert!(std::path::Path::new(&expected_dir).join("llm_analysis_prompts.txt").exists());
         
-        // Verify individual profile files were created
+        // Verify individual profile files were created (full user ID in filename)
         for profile in &profiles {
-            let profile_filename = format!("user_{}_profile.txt", &profile.user_id[..8]);
+            let profile_filename = format!("user_{}_profile.txt", &profile.user_id);
             assert!(std::path::Path::new(&expected_dir).join(profile_filename).exists());
         }
     }

@@ -110,7 +110,7 @@ flowchart TD
 
 ### Quick Start
 ```bash
-git clone https://github.com/yourusername/tweet-scrolls.git
+git clone https://github.com/that-in-rust/tweet-scrolls.git
 cd tweet-scrolls
 cargo build --release
 
@@ -140,7 +140,7 @@ cargo build --release
 flowchart TD
     A1["🔍 Discovery<br/>📂 Auto-detect files<br/>📁 Setup directories"]
     A2["🧵 Thread Building<br/>💬 Connect replies<br/>🔗 Build conversations"]
-    A3["💬 DM Organization<br/>⏰ Add timestamps<br/>👥 A/B participants"]
+    A3["💬 DM Organization<br/>⏰ Add timestamps<br/>👥 User IDs"]
     A4["🔐 Anonymization<br/>🔒 Blake3 hashing<br/>🛡️ Protect identity"]
     A5["📊 Data Generation<br/>📈 CSV files<br/>📝 Human-readable"]
     A6["📊 Final Output<br/>📈 Timeline analysis<br/>✅ Processing complete"]
@@ -185,13 +185,13 @@ flowchart TD
     Processing --> Output
     
     subgraph Output ["💬 Organized Thread"]
-        C1["A: Hello!<br/>(5 minutes later)<br/>B: Hi there!<br/>(5 minutes later)<br/>A: How are you?"]
+        C1["User 123: Hello!<br/>(5 minutes later)<br/>User 456: Hi there!<br/>(5 minutes later)<br/>User 123: How are you?"]
     end
     
     Output --> Metadata
     
     subgraph Metadata ["📊 Metadata"]
-        C2["• 3 messages<br/>• 10 min duration<br/>• A ↔ B participants<br/>• Blake3 anonymized"]
+        C2["• 3 messages<br/>• 10 min duration<br/>• Participants (by user ID)<br/>• Blake3 anonymized"]
     end
     
     style Input fill:#ffe0e0
@@ -218,8 +218,8 @@ flowchart TD
 
 **All processing happens locally** - your data never leaves your machine.
 
-### DM Thread Output: Participant Labels vs. User IDs
-By default, DM thread text outputs use simple participant labels (A, B, etc.) for readability. This makes conversations easy to follow, especially for two-person chats. If you require full transparency, you can configure the tool to output actual user IDs or screen names instead of labels. This option is available for advanced users who want to see real identifiers in their DM thread exports.
+### DM Thread Output: User IDs (default)
+By default, DM thread text outputs display actual user IDs (e.g., "User 1234567890:") for clarity and traceability. Label-based output (A/B) is not enabled by default.
 
 ### Built-in Safety Features
 - Local processing only (no network connections)

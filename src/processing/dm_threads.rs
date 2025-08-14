@@ -346,6 +346,7 @@ mod tests {
         assert!(formatted.contains("Hello!"));
         assert!(formatted.contains("Hi there!"));
         assert!(formatted.contains("How are you?"));
-        assert!(formatted.contains("A:") || formatted.contains("B:")); // Should have sender labels
+        // Should display actual user IDs as sender labels
+        assert!(formatted.contains("User 123:") || formatted.contains("User 456:"));
     }
 }
