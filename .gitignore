@@ -47,3 +47,11 @@ output_*/
 
 # Log files
 *.log
+# Reference repositories for research
+reference_repos/
+
+# Reference repositories for research
+reference_repos/
+
+# Reference repositories for research (gitignored)
+reference_repos/
