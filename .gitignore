@@ -55,3 +55,4 @@ reference_repos/
 
 # Reference repositories for research (gitignored)
 reference_repos/
+.factory/
