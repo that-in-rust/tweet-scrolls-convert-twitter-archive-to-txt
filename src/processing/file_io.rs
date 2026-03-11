@@ -187,7 +187,7 @@ mod tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
             display_text_range: vec!["0".to_string(), "10".to_string()],
             in_reply_to_status_id: None,
@@ -196,12 +196,12 @@ mod tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: None,
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         };
 

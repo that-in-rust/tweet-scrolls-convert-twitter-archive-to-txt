@@ -2,8 +2,9 @@
 //! Implements simple folder-based processing as per requirements
 
 use anyhow::{Result, bail};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::env;
+use serde_json::Value;
 
 /// CLI configuration parsed from command line arguments
 #[derive(Debug)]
@@ -45,9 +46,8 @@ impl CliConfig {
         }
         
         // Check for required files
-        let tweets_file = archive_folder.join("tweets.js");
-        if !tweets_file.exists() {
-            bail!("tweets.js not found in archive folder");
+        if find_archive_file_path(&archive_folder, "tweets.js").is_none() {
+            bail!("tweets.js not found in archive folder or archive_folder/data");
         }
         
         let output_dir = if args.len() > 2 {
@@ -65,27 +65,18 @@ impl CliConfig {
     
     /// Get the path to tweets.js file
     pub fn tweets_file(&self) -> PathBuf {
-        self.archive_folder.join("tweets.js")
+        find_archive_file_path(&self.archive_folder, "tweets.js")
+            .unwrap_or_else(|| self.archive_folder.join("tweets.js"))
     }
     
     /// Get the path to direct-messages.js file (if it exists)
     pub fn dms_file(&self) -> Option<PathBuf> {
-        let path = self.archive_folder.join("direct-messages.js");
-        if path.exists() {
-            Some(path)
-        } else {
-            None
-        }
+        find_archive_file_path(&self.archive_folder, "direct-messages.js")
     }
     
     /// Get the path to direct-message-headers.js file (if it exists)
     pub fn dm_headers_file(&self) -> Option<PathBuf> {
-        let path = self.archive_folder.join("direct-message-headers.js");
-        if path.exists() {
-            Some(path)
-        } else {
-            None
-        }
+        find_archive_file_path(&self.archive_folder, "direct-message-headers.js")
     }
     
     /// Get or create the output directory
@@ -95,6 +86,35 @@ impl CliConfig {
             None => self.archive_folder.join(format!("output_{}_{}", screen_name, timestamp))
         }
     }
+}
+
+fn find_archive_file_path(archive_folder: &Path, file_name: &str) -> Option<PathBuf> {
+    let archive_root_path = archive_folder.join(file_name);
+    if archive_root_path.exists() {
+        return Some(archive_root_path);
+    }
+
+    let nested_data_path = archive_folder.join("data").join(file_name);
+    if nested_data_path.exists() {
+        return Some(nested_data_path);
+    }
+
+    None
+}
+
+fn extract_archive_screen_name(archive_folder: &Path) -> Option<String> {
+    let account_path = find_archive_file_path(archive_folder, "account.js")?;
+    let account_content = std::fs::read_to_string(account_path).ok()?;
+    let json_start = account_content.find('[')?;
+    let json_end = account_content.rfind(']')?;
+    let account_entries: Value = serde_json::from_str(&account_content[json_start..=json_end]).ok()?;
+
+    account_entries
+        .get(0)?
+        .get("account")?
+        .get("username")?
+        .as_str()
+        .map(|username| username.to_string())
 }
 
 fn print_usage() {
@@ -126,10 +146,10 @@ pub async fn process_with_cli(config: CliConfig) -> Result<()> {
 
     // Input file splitting removed: Only output TXT files will be split after processing
 
-    // Use a generic screen name since we're in non-interactive mode
-    let screen_name = "user";
+    let screen_name = extract_archive_screen_name(&config.archive_folder)
+        .unwrap_or_else(|| "user".to_string());
     let timestamp = Utc::now().timestamp();
-    let output_dir = config.get_output_dir(screen_name, timestamp);
+    let output_dir = config.get_output_dir(&screen_name, timestamp);
 
     println!("📁 Output directory: {}", output_dir.display());
 
@@ -139,7 +159,7 @@ pub async fn process_with_cli(config: CliConfig) -> Result<()> {
         dms_file.as_ref().map(|p| p.to_str().unwrap()),
         dm_headers_file.as_ref().map(|p| p.to_str().unwrap()),
         output_dir.to_str().unwrap(),
-        screen_name,
+        &screen_name,
         timestamp,
     ).await?;
 
@@ -225,6 +245,49 @@ mod tests {
         assert!(config.dms_file().is_some());
         assert!(config.dm_headers_file().is_none());
         
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_nested_data_file_detection() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let archive_path = temp_dir.path();
+        let data_path = archive_path.join("data");
+        fs::create_dir_all(&data_path).await?;
+
+        fs::write(data_path.join("tweets.js"), "test").await?;
+        fs::write(data_path.join("direct-messages.js"), "test").await?;
+
+        let config = CliConfig {
+            archive_folder: archive_path.to_path_buf(),
+            output_dir: None,
+            non_interactive: true,
+        };
+
+        assert_eq!(config.tweets_file(), data_path.join("tweets.js"));
+        assert_eq!(config.dms_file(), Some(data_path.join("direct-messages.js")));
+        assert!(config.dm_headers_file().is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_extract_archive_screen_name() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let archive_path = temp_dir.path();
+        let data_path = archive_path.join("data");
+        fs::create_dir_all(&data_path).await?;
+
+        fs::write(
+            data_path.join("account.js"),
+            r#"window.YTD.account.part0 = [{"account":{"username":"realhandle"}}]"#,
+        ).await?;
+
+        assert_eq!(
+            extract_archive_screen_name(archive_path),
+            Some("realhandle".to_string())
+        );
+
         Ok(())
     }
 }

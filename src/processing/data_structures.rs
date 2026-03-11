@@ -19,16 +19,22 @@ pub struct Tweet {
     /// Number of retweets as a string
     pub retweet_count: String,
     /// Whether this tweet has been retweeted by the user
+    #[serde(default)]
     pub retweeted: bool,
     /// Whether this tweet has been favorited/liked by the user
+    #[serde(default)]
     pub favorited: bool,
     /// Whether the tweet was truncated in the original response
+    #[serde(default)]
     pub truncated: bool,
-    /// Language code of the tweet
-    pub lang: String,
+    /// Language code of the tweet (optional - may be missing in some tweets)
+    #[serde(default)]
+    pub lang: Option<String>,
     /// Source application used to post the tweet
+    #[serde(default)]
     pub source: String,
     /// Display range indices for the tweet text
+    #[serde(default)]
     pub display_text_range: Vec<String>,
     
     /// ID of the tweet being replied to (if this is a reply)
@@ -46,8 +52,9 @@ pub struct Tweet {
     #[serde(default)]
     pub edit_info: Option<EditInfo>,
     
-    /// Tweet entities like mentions, hashtags, URLs (always present, but may be empty)
-    pub entities: TweetEntities,
+    /// Tweet entities like mentions, hashtags, URLs (optional - may be missing)
+    #[serde(default)]
+    pub entities: Option<TweetEntities>,
     
     /// Whether the tweet contains sensitive content
     #[serde(default)]
@@ -130,11 +137,14 @@ pub struct UserMention {
 pub struct TweetUrl {
     /// Shortened URL as it appears in the tweet
     pub url: String,
-    /// Full expanded URL
-    pub expanded_url: String,
-    /// Display version of the URL
-    pub display_url: String,
+    /// Full expanded URL (optional - may be missing for deleted/unavailable links)
+    #[serde(default)]
+    pub expanded_url: Option<String>,
+    /// Display version of the URL (optional)
+    #[serde(default)]
+    pub display_url: Option<String>,
     /// Position indices in the tweet text where this URL appears
+    #[serde(default)]
     pub indices: Vec<String>,
 }
 

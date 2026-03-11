@@ -17,7 +17,7 @@ mod enhanced_csv_writer_tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "Twitter Web App".to_string(),
             display_text_range: vec!["0".to_string(), text.len().to_string()],
             in_reply_to_status_id: reply_to_id.map(|s| s.to_string()),
@@ -26,12 +26,12 @@ mod enhanced_csv_writer_tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: reply_to_user.map(|s| s.to_string()),
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         }
     }

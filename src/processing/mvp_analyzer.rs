@@ -79,17 +79,19 @@ impl MvpAnalyzer {
                 }
 
                 // Extract relationships from mentions
-                for mention in &tweet.entities.user_mentions {
-                    let username = mention.screen_name.clone();
-                    let relationship = self.relationships.entry(username.clone()).or_insert(SimpleRelationship {
-                        username: username.clone(),
-                        interaction_count: 0,
-                        last_interaction: tweet.created_at.clone(),
-                        interaction_type: "tweets".to_string(),
-                    });
-                    
-                    relationship.interaction_count += 1;
-                    relationship.last_interaction = tweet.created_at.clone();
+                if let Some(entities) = &tweet.entities {
+                    for mention in &entities.user_mentions {
+                        let username = mention.screen_name.clone();
+                        let relationship = self.relationships.entry(username.clone()).or_insert(SimpleRelationship {
+                            username: username.clone(),
+                            interaction_count: 0,
+                            last_interaction: tweet.created_at.clone(),
+                            interaction_type: "tweets".to_string(),
+                        });
+                        
+                        relationship.interaction_count += 1;
+                        relationship.last_interaction = tweet.created_at.clone();
+                    }
                 }
 
                 // Extract relationships from replies
@@ -324,7 +326,7 @@ mod tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "Twitter Web App".to_string(),
             display_text_range: vec!["0".to_string(), text.len().to_string()],
             in_reply_to_status_id: None,
@@ -340,7 +342,7 @@ mod tests {
                     is_edit_eligible: false,
                 })
             }),
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: mentions.into_iter().map(|m| UserMention {
@@ -351,7 +353,7 @@ mod tests {
                     id: "123456789".to_string(),
                 }).collect(),
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         }
     }

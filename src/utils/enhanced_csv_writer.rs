@@ -68,7 +68,7 @@ impl CsvRecord {
             thread_retweet_count: thread.retweet_count,
             twitter_url,
             reply_context,
-            lang: tweet.lang.clone(),
+            lang: tweet.lang.clone().unwrap_or_default(),
             source: tweet.source.clone(),
         }
     }

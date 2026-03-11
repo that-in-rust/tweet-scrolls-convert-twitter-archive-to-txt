@@ -89,8 +89,10 @@ impl RelationshipAnalyzer {
             }
             
             // Add all mentioned users
-            for mention in &tweet.entities.user_mentions {
-                users.insert(mention.screen_name.clone());
+            if let Some(entities) = &tweet.entities {
+                for mention in &entities.user_mentions {
+                    users.insert(mention.screen_name.clone());
+                }
             }
         }
         
@@ -308,7 +310,7 @@ mod tests {
                 retweeted: false,
                 favorited: false,
                 truncated: false,
-                lang: "en".to_string(),
+                lang: Some("en".to_string()),
                 source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
                 display_text_range: vec!["0".to_string(), "12".to_string()],
                 in_reply_to_status_id: None,
@@ -317,7 +319,7 @@ mod tests {
                 in_reply_to_user_id_str: None,
                 in_reply_to_screen_name: Some("alice".to_string()),
                 edit_info: None,
-                entities: TweetEntities {
+                entities: Some(TweetEntities {
                     hashtags: vec![],
                     symbols: vec![],
                     user_mentions: vec![
@@ -330,7 +332,7 @@ mod tests {
                         }
                     ],
                     urls: vec![],
-                },
+                }),
                 possibly_sensitive: None,
             },
             Tweet {
@@ -343,7 +345,7 @@ mod tests {
                 retweeted: false,
                 favorited: false,
                 truncated: false,
-                lang: "en".to_string(),
+                lang: Some("en".to_string()),
                 source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
                 display_text_range: vec!["0".to_string(), "13".to_string()],
                 in_reply_to_status_id: None,
@@ -352,7 +354,7 @@ mod tests {
                 in_reply_to_user_id_str: None,
                 in_reply_to_screen_name: None,
                 edit_info: None,
-                entities: TweetEntities {
+                entities: Some(TweetEntities {
                     hashtags: vec![],
                     symbols: vec![],
                     user_mentions: vec![
@@ -365,7 +367,7 @@ mod tests {
                         }
                     ],
                     urls: vec![],
-                },
+                }),
                 possibly_sensitive: None,
             },
         ]

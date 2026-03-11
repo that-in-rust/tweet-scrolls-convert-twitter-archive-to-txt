@@ -221,9 +221,11 @@ fn analyze_tweet_structure(tweets: &[TweetWrapper]) {
             has_edit_info += 1;
         }
         
-        if !tweet.entities.hashtags.is_empty() || 
-           !tweet.entities.user_mentions.is_empty() || 
-           !tweet.entities.urls.is_empty() {
+        if tweet.entities.as_ref().is_some_and(|entities| {
+            !entities.hashtags.is_empty() ||
+            !entities.user_mentions.is_empty() ||
+            !entities.urls.is_empty()
+        }) {
             has_entities += 1;
         }
     }
@@ -388,14 +390,16 @@ fn investigate_missing_tweets(all_tweets: &[TweetWrapper], threads: &[tweet_scro
             println!("      Type: Original tweet");
         }
         
-        if !tweet.entities.user_mentions.is_empty() {
-            missing_with_mentions += 1;
-            println!("      Mentions: {}", tweet.entities.user_mentions.len());
-        }
-        
-        if !tweet.entities.urls.is_empty() {
-            missing_with_urls += 1;
-            println!("      URLs: {}", tweet.entities.urls.len());
+        if let Some(entities) = &tweet.entities {
+            if !entities.user_mentions.is_empty() {
+                missing_with_mentions += 1;
+                println!("      Mentions: {}", entities.user_mentions.len());
+            }
+            
+            if !entities.urls.is_empty() {
+                missing_with_urls += 1;
+                println!("      URLs: {}", entities.urls.len());
+            }
         }
         
         println!();

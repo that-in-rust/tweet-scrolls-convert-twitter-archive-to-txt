@@ -37,17 +37,19 @@ fn main() -> Result<()> {
                 }
                 
                 // Test entities
-                if !tweet.entities.user_mentions.is_empty() {
-                    println!("  └─ Mentions: {}", 
-                        tweet.entities.user_mentions.iter()
-                            .map(|m| format!("@{}", m.screen_name))
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    );
-                }
-                
-                if !tweet.entities.urls.is_empty() {
-                    println!("  └─ URLs: {}", tweet.entities.urls.len());
+                if let Some(entities) = &tweet.entities {
+                    if !entities.user_mentions.is_empty() {
+                        println!("  └─ Mentions: {}", 
+                            entities.user_mentions.iter()
+                                .map(|m| format!("@{}", m.screen_name))
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        );
+                    }
+                    
+                    if !entities.urls.is_empty() {
+                        println!("  └─ URLs: {}", entities.urls.len());
+                    }
                 }
             }
         }

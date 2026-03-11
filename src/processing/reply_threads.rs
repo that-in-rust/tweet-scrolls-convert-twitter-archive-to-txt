@@ -1,7 +1,7 @@
 //! Reply thread processing module
 //! Treats all replies as potential thread starters
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::processing::data_structures::Tweet;
 
 /// Process tweets to identify and build reply threads
@@ -17,21 +17,25 @@ use crate::processing::data_structures::Tweet;
 pub fn process_reply_threads(tweets: &[Tweet], _screen_name: &str) -> Vec<Vec<Tweet>> {
     let mut threads = Vec::new();
     let mut tweet_map: HashMap<String, &Tweet> = HashMap::new();
-    let mut processed_ids: HashMap<String, bool> = HashMap::new();
+    let mut reply_map: HashMap<String, Vec<&Tweet>> = HashMap::new();
+    let mut processed_ids = HashSet::new();
     
-    // Build lookup map
+    // Build lookup maps once so thread expansion does not rescan every tweet.
     for tweet in tweets {
         tweet_map.insert(tweet.id_str.clone(), tweet);
+        if let Some(parent_id) = &tweet.in_reply_to_status_id {
+            reply_map.entry(parent_id.clone()).or_default().push(tweet);
+        }
     }
     
     // Process each tweet
     for tweet in tweets {
-        if processed_ids.contains_key(&tweet.id_str) {
+        if processed_ids.contains(&tweet.id_str) {
             continue;
         }
         
         // Build thread starting from this tweet
-        let thread = build_thread_from_tweet(tweet, &tweet_map, &mut processed_ids);
+        let thread = build_thread_from_tweet(tweet, &tweet_map, &reply_map, &mut processed_ids);
         
         if !thread.is_empty() {
             threads.push(thread);
@@ -51,10 +55,10 @@ pub fn process_reply_threads(tweets: &[Tweet], _screen_name: &str) -> Vec<Vec<Tw
 fn build_thread_from_tweet(
     start_tweet: &Tweet,
     tweet_map: &HashMap<String, &Tweet>,
-    processed_ids: &mut HashMap<String, bool>,
+    reply_map: &HashMap<String, Vec<&Tweet>>,
+    processed_ids: &mut HashSet<String>,
 ) -> Vec<Tweet> {
     let mut thread = Vec::new();
-    let _current_tweet = start_tweet;
     
     // First, trace back to find the root of the thread
     let mut root_tweet = start_tweet;
@@ -68,22 +72,20 @@ fn build_thread_from_tweet(
     
     // Now build the thread forward from the root
     let mut stack = vec![root_tweet];
-    let mut visited = HashMap::new();
+    let mut visited_ids = HashSet::new();
     
     while let Some(tweet) = stack.pop() {
-        if visited.contains_key(&tweet.id_str) {
+        if !visited_ids.insert(tweet.id_str.clone()) {
             continue;
         }
         
-        visited.insert(tweet.id_str.clone(), true);
-        processed_ids.insert(tweet.id_str.clone(), true);
+        processed_ids.insert(tweet.id_str.clone());
         thread.push(tweet.clone());
         
-        // Find all direct replies to this tweet
-        for candidate in tweet_map.values() {
-            if let Some(reply_to_id) = &candidate.in_reply_to_status_id {
-                if reply_to_id == &tweet.id_str && !visited.contains_key(&candidate.id_str) {
-                    stack.push(candidate);
+        if let Some(reply_tweets) = reply_map.get(&tweet.id_str) {
+            for reply_tweet in reply_tweets.iter().rev() {
+                if !visited_ids.contains(&reply_tweet.id_str) {
+                    stack.push(reply_tweet);
                 }
             }
         }
@@ -147,7 +149,7 @@ mod tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "test".to_string(),
             display_text_range: vec!["0".to_string(), text.len().to_string()],
             in_reply_to_status_id: reply_to_id.map(|s| s.to_string()),
@@ -156,7 +158,7 @@ mod tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: reply_to_user.map(|s| s.to_string()),
             edit_info: None,
-            entities: TweetEntities::default(),
+            entities: Some(TweetEntities::default()),
             possibly_sensitive: None,
         }
     }

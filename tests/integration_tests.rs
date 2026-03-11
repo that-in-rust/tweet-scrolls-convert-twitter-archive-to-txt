@@ -87,7 +87,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                 retweeted: false,
                 favorited: false,
                 truncated: false,
-                lang: "en".to_string(),
+                lang: Some("en".to_string()),
                 source: "<a href=\"https://mobile.twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
                 display_text_range: vec!["0".to_string(), "270".to_string()],
                 in_reply_to_status_id: None,
@@ -96,7 +96,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                 in_reply_to_user_id_str: None,
                 in_reply_to_screen_name: Some("testuser".to_string()),
                 edit_info: None,
-                entities: TweetEntities {
+                entities: Some(TweetEntities {
                     hashtags: vec![],
                     symbols: vec![],
                     user_mentions: vec![
@@ -109,7 +109,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                         }
                     ],
                     urls: vec![],
-                },
+                }),
                 possibly_sensitive: None,
             }
         },
@@ -124,7 +124,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                 retweeted: false,
                 favorited: false,
                 truncated: false,
-                lang: "en".to_string(),
+                lang: Some("en".to_string()),
                 source: "<a href=\"http://twitter.com/download/android\" rel=\"nofollow\">Twitter for Android</a>".to_string(),
                 display_text_range: vec!["0".to_string(), "68".to_string()],
                 in_reply_to_status_id: Some("1947467485424562448".to_string()),
@@ -133,7 +133,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                 in_reply_to_user_id_str: Some("848022794629730304".to_string()),
                 in_reply_to_screen_name: Some("TnvMadhav".to_string()),
                 edit_info: None,
-                entities: TweetEntities {
+                entities: Some(TweetEntities {
                     hashtags: vec![],
                     symbols: vec![],
                     user_mentions: vec![
@@ -146,7 +146,7 @@ fn create_realistic_tweet_data() -> Vec<processing::data_structures::TweetWrappe
                         }
                     ],
                     urls: vec![],
-                },
+                }),
                 possibly_sensitive: None,
             }
         }
@@ -533,7 +533,7 @@ fn test_tweet_creation() {
         retweeted: false,
         favorited: false,
         truncated: false,
-        lang: "en".to_string(),
+        lang: Some("en".to_string()),
         source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
         display_text_range: vec!["0".to_string(), "10".to_string()],
         in_reply_to_status_id: None,
@@ -542,12 +542,12 @@ fn test_tweet_creation() {
         in_reply_to_user_id_str: None,
         in_reply_to_screen_name: None,
         edit_info: None,
-        entities: TweetEntities {
+        entities: Some(TweetEntities {
             hashtags: vec![],
             symbols: vec![],
             user_mentions: vec![],
             urls: vec![],
-        },
+        }),
         possibly_sensitive: None,
     };
     
@@ -570,7 +570,7 @@ fn test_thread_creation() {
         retweeted: false,
         favorited: false,
         truncated: false,
-        lang: "en".to_string(),
+        lang: Some("en".to_string()),
         source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
         display_text_range: vec!["0".to_string(), "10".to_string()],
         in_reply_to_status_id: None,
@@ -579,12 +579,12 @@ fn test_thread_creation() {
         in_reply_to_user_id_str: None,
         in_reply_to_screen_name: None,
         edit_info: None,
-        entities: TweetEntities {
+        entities: Some(TweetEntities {
             hashtags: vec![],
             symbols: vec![],
             user_mentions: vec![],
             urls: vec![],
-        },
+        }),
         possibly_sensitive: None,
     };
     

@@ -192,7 +192,7 @@ mod tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
             display_text_range: vec!["0".to_string(), "11".to_string()],
             in_reply_to_status_id: None,
@@ -201,12 +201,12 @@ mod tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: None,
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         };
 
@@ -220,7 +220,7 @@ mod tests {
             retweeted: false,
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
             display_text_range: vec!["0".to_string(), "12".to_string()],
             in_reply_to_status_id: Some("1".to_string()),
@@ -229,12 +229,12 @@ mod tests {
             in_reply_to_user_id_str: Some("12345".to_string()),
             in_reply_to_screen_name: Some("testuser".to_string()),
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         };
 
@@ -258,7 +258,7 @@ mod tests {
             retweeted: true, // This should be filtered out
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
             display_text_range: vec!["0".to_string(), "30".to_string()],
             in_reply_to_status_id: None,
@@ -267,12 +267,12 @@ mod tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: None,
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         };
 
@@ -286,7 +286,7 @@ mod tests {
             retweeted: false, // This should be kept
             favorited: false,
             truncated: false,
-            lang: "en".to_string(),
+            lang: Some("en".to_string()),
             source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
             display_text_range: vec!["0".to_string(), "15".to_string()],
             in_reply_to_status_id: None,
@@ -295,12 +295,12 @@ mod tests {
             in_reply_to_user_id_str: None,
             in_reply_to_screen_name: None,
             edit_info: None,
-            entities: TweetEntities {
+            entities: Some(TweetEntities {
                 hashtags: vec![],
                 symbols: vec![],
                 user_mentions: vec![],
                 urls: vec![],
-            },
+            }),
             possibly_sensitive: None,
         };
 

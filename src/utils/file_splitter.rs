@@ -390,8 +390,9 @@ mod tests {
         
         let result = split_file(&config)?;
         
-        assert_eq!(result.output_dir, output_dir.canonicalize()?);
-        assert!(result.chunks[0].path.starts_with(&output_dir));
+        let canonical_output_dir = output_dir.canonicalize()?;
+        assert_eq!(result.output_dir, canonical_output_dir);
+        assert!(result.chunks[0].path.starts_with(&canonical_output_dir));
         
         Ok(())
     }
