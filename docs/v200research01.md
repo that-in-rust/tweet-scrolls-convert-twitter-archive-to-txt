@@ -69,6 +69,218 @@ Content pillars:
 2. Technical deep-dives on Rust + Tauri
 3. Use case tutorials (AI analysis, legal discovery, personal archiving)
 
+### 1.4 Customer Problem Stack Rank (Detailed)
+
+Shreyas Doshi advocates identifying the top problems that have *constantly* been plaguing customers, not building for ephemeral needs. The core question: **Who wakes up frustrated about their Twitter archive, and why?**
+
+**Problem Stack Rank for Target Users:**
+
+1. **"I have 10 years of tweets and can't search or understand them"** — Creators, journalists, researchers who want to mine their own history for content, patterns, or evidence. Twitter's built-in archive viewer is a broken HTML file with no real search or thread reconstruction.
+
+2. **"I want to feed my tweet history to an LLM but the files are too messy/large"** — Power users of ChatGPT, Claude, Gemini who want personalized AI assistants grounded in their actual writing voice and conversation history. This is the *emerging* killer use case. X/Twitter is now using tweets to train its own AI, and users increasingly want sovereignty over *their* data for *their* AI.
+
+3. **"I'm leaving X/Twitter and want a permanent record"** — The "great migration" user. TechCrunch covered tools for this exact scenario in the post-Musk era. Tools like `twitter-archive-parser` (2.4k stars) grew specifically from this wave.
+
+4. **"I need to analyze my DM relationships for professional/personal reasons"** — Niche but high-intent. The relationship intelligence feature uniquely serves this.
+
+**Key Insight:** Problems #1 and #2 are *persistent, recurring* problems. Problem #3 is event-driven (spikes with platform controversies). The GTM should anchor on #2 (LLM-ready personal data) because it is growing, persistent, and differentiating.
+
+### 1.5 BTD Framework (Below / To / Differentiate)
+
+Shreyas's BTD framework asks: for each capability, should you come in *below* table stakes, *at* table stakes, or actively *differentiate*?
+
+| Capability | BTD Decision | Rationale |
+|-----------|-------------|-----------|
+| Basic archive → text conversion | **To** (Table Stakes) | `twitter-archive-parser` already does this well in Python. Must match. |
+| Thread reconstruction | **Differentiate** | Most tools dump flat tweets. Thread reconstruction into readable conversations is rare and high-value. |
+| DM conversation threading | **Differentiate** | Almost no open-source tool handles DM threading with timestamps. |
+| LLM-optimized output | **Differentiate** | Auto-splitting for context windows, clean plaintext for RAG pipelines—this is the wedge. |
+| Markdown/HTML output | **Below** | Not needed for primary use case (LLM ingestion). Add later if demanded. |
+| Performance / speed | **Differentiate** | Rust gives a natural advantage over Python tools for large archives (50k+ tweets). |
+| Web UI / GUI | **Below** | CLI-first is correct for the developer audience. Don't waste cycles here. |
+| Privacy / local processing | **To** (Table Stakes) | All archive tools process locally. Blake3 anonymization is a nice touch but not a differentiator by itself. |
+| Relationship intelligence | **Differentiate** | Unique feature. No competitor generates a relationship intelligence report. |
+
+**Strategic Implication:** The differentiation axes are (1) LLM-ready output, (2) thread/DM reconstruction quality, (3) relationship intelligence, and (4) Rust performance. These should be the messaging pillars.
+
+### 1.6 Pre-Mortem Analysis
+
+Shreyas popularized pre-mortems at Stripe to predict and prevent problems before they happen. Here are the most likely failure scenarios:
+
+**Failure Mode 1: "Nobody found it."**
+- *Root cause:* The repo name is too long, there's no crates.io package, no GitHub Release binaries, and no Hacker News/Reddit launch post.
+- *Mitigation:* Rename to just `tweet-scrolls`. Publish to crates.io. Create GitHub Releases with prebuilt binaries for macOS/Linux/Windows. Write a launch post.
+
+**Failure Mode 2: "People found it but bounced."**
+- *Root cause:* README has hardcoded personal paths. No GIF/screenshot of output. Requires Rust toolchain. No one-liner install.
+- *Mitigation:* Clean README. Add `brew install` or `cargo install tweet-scrolls`. Add sample output showcase.
+
+**Failure Mode 3: "The LLM use case wasn't explicit enough."**
+- *Root cause:* The LLM-ready auto-split feature is buried in the README. Users don't realize they can paste output directly into ChatGPT.
+- *Mitigation:* Make "Feed your Twitter history to ChatGPT/Claude" the *hero headline*. Add a dedicated "Use with LLMs" section with copy-paste examples.
+
+**Failure Mode 4: "twitter-archive-parser already won."**
+- *Root cause:* The Python tool has 2.4k stars and strong SEO. Tweet-Scrolls is invisible.
+- *Mitigation:* Don't compete head-on. Position as "the LLM-era upgrade" — optimized for AI consumption, not just archival. Different positioning, different audience.
+
+### 1.7 Three Levels of Product Work
+
+Shreyas defines three levels: **Impact**, **Execution**, and **Optics**. Most developers optimize for execution (clean code, features) while neglecting impact and optics.
+
+**Impact Level (what actually moves the needle):**
+- Position Tweet-Scrolls as a "personal data → LLM pipeline" tool, not just an archive converter
+- Target the AI-native audience who will amplify organically
+- Publish to crates.io and Homebrew for zero-friction adoption
+
+**Execution Level (what needs to work):**
+- Fix the CLI (`clap` is commented out)
+- Add JSON and JSONL output formats for direct RAG pipeline ingestion
+- Add a `--llm-ready` flag that outputs optimally chunked files with metadata headers
+
+**Optics Level (what creates perception):**
+- Create a demo GIF showing: archive → tweet-scrolls → paste into ChatGPT → "tell me about my 2020 conversations"
+- Launch on Hacker News with the angle: "I built a Rust tool to make my Twitter history useful for AI"
+- The narrative isn't "archive converter" — it's "unlock your digital memory"
+
+### 1.8 MLP Thinking (Minimum Loveable Product)
+
+Shreyas advocates building a *minimum loveable product* rather than a minimum viable product. The test: **If a user tells a friend about your product in casual conversation, what's the one sentence they say?**
+
+**Current:** *"There's this Rust tool that converts Twitter archive JSON to CSV and TXT files."*
+→ **Nobody tells their friend this.**
+
+**Target:** *"I fed 10 years of my tweets into ChatGPT using this tool, and now it writes exactly like me."*
+→ **This spreads virally among AI power users.**
+
+The gap between these two sentences defines the GTM work.
+
+### 1.9 LNO Framework: Feature Roadmap
+
+Applying Shreyas's LNO framework—classifying work as Leverage, Neutral, or Overhead:
+
+#### Leverage Tasks (10-100x impact, do these excellently)
+
+1. **"LLM-Ready" output mode** — Add `--format llm` or `--llm-ready` flag that produces:
+   - Chunked plaintext files sized for common context windows (128K, 200K tokens)
+   - Metadata headers (date range, tweet count, thread count) at top of each chunk
+   - JSONL format option for RAG pipeline ingestion
+   - System prompt suggestion file (e.g., "You are [user]. Here is your tweet history...")
+
+2. **One-command install** — Publish to crates.io (`cargo install tweet-scrolls`), create GitHub Releases with prebuilt binaries via cross-compilation, and ideally a Homebrew formula.
+
+3. **Narrative-driven README rewrite** — Hero headline: "Turn your Twitter archive into AI-ready personal context." Lead with the LLM use case. Add a demo GIF. Remove personal paths. Add sample output files in `/samples/`.
+
+4. **Semantic search preparation** — Add optional embedding-friendly output: each tweet/thread as a separate document with metadata (date, participants, topics). This positions Tweet-Scrolls as the preprocessing step for personal knowledge bases (Obsidian, Notion, vector DBs).
+
+#### Neutral Tasks (do these competently)
+
+5. **Uncomment and properly integrate `clap`** — Proper CLI argument parsing with `--help`, flags, subcommands.
+
+6. **CI/CD with GitHub Actions** — Automated tests, clippy, and release builds for multiple platforms.
+
+7. **Bluesky/Mastodon archive support** — Cross-platform archive conversion widens the market. These formats are simpler than Twitter's.
+
+8. **Sentiment analysis per conversation** — Lightweight emotional tone tagging on threads. Useful for the "self-reflection" use case.
+
+#### Overhead Tasks (do these adequately, don't over-invest)
+
+9. **Web UI** — Resist the urge. CLI is correct for the target audience.
+
+10. **Enterprise compliance features** — Leave this to the $500+/mo tools. Stay focused on the individual creator/developer.
+
+### 1.10 Distribution Channel Strategy
+
+Shreyas emphasizes that most execution problems are actually strategy problems. The distribution question isn't "how do we market?" — it's "where do the highest-intent users already congregate?"
+
+| Channel | Strategy | Expected Impact |
+|---------|----------|-----------------|
+| **Hacker News** | Launch post: "Show HN: Rust CLI to turn your Twitter archive into LLM-ready context" | High — exact audience match |
+| **Reddit** (r/rust, r/ChatGPT, r/LocalLLaMA, r/selfhosted) | Cross-post with different angles per subreddit | High — multiple niche communities |
+| **X/Twitter** | Thread showing before/after: raw JSON → ChatGPT conversation about your own history | High — ironic and viral-worthy |
+| **crates.io** | Package listing gets passive discovery from Rust ecosystem | Medium — long-tail |
+| **GitHub SEO** | Topics: `twitter-archive`, `llm`, `rust`, `data-portability`, `chatgpt` | Medium — search discovery |
+| **Dev.to / Hashnode** | Tutorial: "How I made ChatGPT remember my 10 years of tweets" | Medium — content marketing |
+| **YouTube** | 3-minute demo video showing the full workflow | Medium — visual proof |
+
+### 1.11 Timing and Narrative Hooks
+
+The macro environment is exceptionally favorable for this tool right now:
+
+- **X/Twitter ToS changes** — Users are increasingly aware that X claims rights to their content and uses it for AI training. The counter-narrative of "take control of YOUR data" resonates strongly.
+- **Data sovereignty as a trend** — Privacy regulations and consumer sentiment are pushing toward user-controlled data. Tools that give people sovereignty over their digital history align with this movement.
+- **LLM personalization boom** — The wave of "train LLM on your own data" content and tools is massive. Tweet-Scrolls can ride this wave by positioning as the first step in the pipeline.
+- **Platform instability** — Every time X/Twitter makes a controversial change, there's a spike in "how to download my archive" searches. Having the tool ready and polished for these moments is critical.
+
+### 1.12 Competitive Positioning Matrix
+
+| Feature | Tweet-Scrolls | twitter-archive-parser (Python, 2.4k ⭐) | getphyllo/twitter-parser | Enterprise tools |
+|---------|--------------|------------------------------------------|--------------------------|------------------|
+| Language | Rust (fast) | Python | Python | Various |
+| Thread reconstruction | ✅ Deep | ✅ Basic | ❌ | ✅ |
+| DM threading w/ timestamps | ✅ | ✅ Basic | ❌ | ✅ |
+| LLM-ready output | ✅ Auto-split | ❌ | ❌ | ❌ |
+| Relationship intelligence | ✅ | ❌ | ❌ | ❌ |
+| Markdown/HTML output | ❌ | ✅ | ❌ | ✅ |
+| Privacy (local only) | ✅ | ✅ | ✅ | ❌ (SaaS) |
+| Price | Free/OSS | Free/OSS | Free/OSS | $49-$1000+/mo |
+| Install friction | High (needs Rust) | Low (Python) | Medium | Low (SaaS) |
+
+**The Gap to Exploit:** No existing tool is purpose-built for the LLM use case. `twitter-archive-parser` converts to markdown for blogging. Tweet-Scrolls should own the "archive → AI" pipeline.
+
+### 1.13 Opportunity Cost Thinking
+
+Shreyas argues that ROI thinking ("Is this worth doing?") is inferior to opportunity cost thinking ("Is this the *best* thing to do right now?").
+
+**Highest opportunity cost if NOT done:**
+- Not publishing to crates.io — every day without it is a day of lost passive discovery
+- Not rewriting the README around the LLM narrative — the current README buries the most compelling value prop
+- Not launching on HN — the product is ready enough; polish is the enemy of shipping
+
+**Lowest opportunity cost if deferred:**
+- Web UI, Bluesky support, enterprise features — these serve future markets, not the current one
+- Perfect code architecture — the codebase is already well-structured
+
+### 1.14 30/60/90 Day Plan
+
+#### Days 1-30: Foundation Sprint
+
+- Clean README: hero headline, demo GIF, remove personal paths, add sample outputs
+- Uncomment and integrate `clap` for proper CLI UX
+- Publish v0.1.0 to crates.io
+- Set up GitHub Actions for CI (test, clippy, release builds)
+- Create GitHub Release with prebuilt binaries (macOS ARM/x86, Linux, Windows)
+- Add `--format` flag with options: `txt` (default), `csv`, `jsonl`
+- Add `--llm-ready` flag for optimized LLM consumption
+- Write 3-5 GitHub Issues as a public roadmap
+
+#### Days 31-60: Launch & Distribution
+
+- Write HN "Show HN" post with narrative: "I built a Rust tool to turn my Twitter archive into LLM-ready personal context"
+- Post X/Twitter thread with visual before/after
+- Cross-post to r/rust, r/ChatGPT, r/LocalLLaMA, r/selfhosted
+- Write dev.to tutorial: "How to make ChatGPT remember your 10 years of tweets"
+- Add Homebrew formula or installation script
+- Add embedding-friendly output mode for vector DB ingestion
+- Collect and respond to initial user feedback
+
+#### Days 61-90: Expansion & Community
+
+- Add Bluesky archive support (widen the market)
+- Add optional sentiment tagging per thread
+- Create a "personal knowledge base" output format (Obsidian-compatible markdown vault)
+- Explore Mastodon archive support
+- Consider a companion web-based demo (WASM?) that processes archives client-side
+- Engage with contributors, add CONTRIBUTING.md, label good-first-issues
+- Evaluate whether a simple TUI (terminal UI) would increase adoption
+
+### 1.15 One-Sentence Product Statement
+
+Applying Shreyas's minimum loveable product test — the sentence a user tells a friend:
+
+> **"Tweet-Scrolls turns your Twitter archive into organized, AI-ready files so you can feed your entire tweet history to ChatGPT and have it actually know you."**
+
+This sentence contains: the tool name, what it does, the unique value (AI-ready), and the magical outcome (AI that knows you). Build everything — features, README, launch posts, naming — around making this sentence true and self-evident.
+
 ---
 
 ## Part 2: Tauri Desktop App Vision
@@ -181,6 +393,12 @@ ollama serve  # localhost:11434
 - "Good Product Strategy, Bad Product Strategy"
 - Customer Problem Stack Ranking methodology
 - "Wow" vs "Table Stakes" feature prioritization
+- BTD Framework (Below/To/Differentiate)
+- Pre-mortem analysis methodology
+- Three Levels of Product Work (Impact/Execution/Optics)
+- MLP (Minimum Loveable Product) thinking
+- LNO Framework (Leverage/Neutral/Overhead)
+- Opportunity cost vs ROI thinking
 
 ### Tauri & Local LLM
 - "Building Local LM Desktop Applications with Tauri" (Medium)
@@ -213,6 +431,8 @@ ollama serve  # localhost:11434
 ---
 
 ## Next Steps
+
+See **Section 1.14: 30/60/90 Day Plan** for concrete action items. High-level priorities:
 
 1. Review reference implementations (twitter-circle repo)
 2. Define L1 architecture decisions
