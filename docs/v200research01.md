@@ -430,6 +430,203 @@ ollama serve  # localhost:11434
 
 ---
 
+## Part 5: Competitive Ecosystem Analysis
+
+### 5.1 Executive Summary
+
+The Twitter/X data tools ecosystem spans 50+ active open-source projects, a dozen commercial products, and several browser extensions. The most critical finding: **no tool currently combines thread reconstruction + LLM-ready output + Rust performance** in a single package.
+
+### 5.2 Archive Parsers & Converters
+
+This is the most directly competitive category for Tweet-Scrolls.
+
+| Tool | Stars | Language | Key Output | Thread-Aware | LLM Focus |
+|------|-------|----------|------------|:------------:|:---------:|
+| twitter-archive-parser | 2,441 | Python | MD, HTML, JSON, CSV | ❌ | ❌ |
+| tweet-scrolls | 1 | Rust | TXT (threaded) | ✅ | Partial |
+| twitter-archive-reader | npm pkg | JS/TS | Programmatic API | ❌ | ❌ |
+| taupe | 33 | Python | CSV (URLs only) | ❌ | ❌ |
+| twitter-archive-analysis | 64 | Python | Analysis/stats | ❌ | ❌ |
+| twitter-archive-tools | <10 | JS | Portable data | ❌ | ❌ |
+| Empyrean | 15 | Ruby | Stats/metrics | ❌ | ❌ |
+| tweet2csv | 0 | Python | CSV for AI agents | ❌ | Partial |
+
+**Key Finding:** `twitter-archive-parser` by Tim Hutton is the dominant player with 2,441 stars. It outputs tweets as Markdown, HTML, or JSON but treats each tweet atomically — no thread reconstruction. This is Tweet-Scrolls' primary differentiator.
+
+**PRD Implication:** The npm package `twitter-archive-reader` supports both classic and GDPR archive formats, making it the most complete parsing library available. Tweet-Scrolls should match this format coverage.
+
+### 5.3 Self-Hosted Archive Sites
+
+| Tool | Stars | Stack | Key Feature |
+|------|-------|-------|-------------|
+| tweetback | 679 | Eleventy/JS | Individual URLs per tweet, threading |
+| tweetback-canonical | 74 | JS | Cross-archive URL resolution |
+| twitter-archiver | 312 | JS | Simple public searchable archive |
+| Archive Explorer | 52 | TypeScript/React | Browse/delete from archive |
+
+**PRD Implication:** A `tweet-scrolls export --html` command generating a threaded, searchable site would appeal to the IndieWeb community (679+ stars for tweetback validates demand).
+
+### 5.4 AI-Powered Tools
+
+This is the fastest-growing and most strategically relevant category.
+
+#### Smaug — Bookmark AI Archiver (763 stars)
+- Fetches Twitter/X bookmarks, expands `t.co` links
+- Uses Claude or OpenCode to analyze and categorize
+- Saves results as organized Markdown files
+- Launched January 2026 → 763 stars in under 3 months
+- Works with *live* bookmarks via cookies, not archive ZIP
+
+#### Fujisaki — Twitter Doppelgänger (323 stars)
+- Creates digital doppelgänger from archive using ChatGLM + LoRA fine-tuning
+- Parses archive into instruction-style JSON dataset
+- Training on 75,000 tweets takes ~3 hours per epoch on A100
+- Proves archive-to-LLM pipeline works for fine-tuning
+
+#### Community Archive (1M+ tweets)
+- Open public database of user-contributed archives
+- Public API for researchers and developers
+- Filters by date range, excludes likes
+
+**PRD Implication:** Smaug's explosive 763-star growth in <3 months validates demand for AI-processed Twitter data. Tweet-Scrolls should be the **best possible preprocessing step** before feeding data into any downstream AI tool.
+
+### 5.5 Scrapers & Exporters
+
+| Tool | Stars | Method | What It Captures |
+|------|-------|--------|-----------------|
+| twitter-web-exporter | 2,221 | UserScript (Tampermonkey) | Tweets, bookmarks, lists, followers |
+| twarc | 1,390 | Twitter API (v2) | JSON tweet data |
+| xTap | 106 | Chrome ext (GraphQL intercept) | Daily JSONL files |
+| DMArchiver | 226 | Twitter API | DMs, images, videos |
+| ntscraper | PyPI | Nitter instances | Profiles, tweets, hashtags |
+
+**PRD Implication:** Tweet-Scrolls works with the *already-downloaded* archive — it doesn't compete with scrapers. But understanding scraper outputs (JSON, JSONL, CSV) informs what **input formats** Tweet-Scrolls could support beyond the official archive ZIP.
+
+### 5.6 Bookmark Managers
+
+| Tool | Type | Price | Key Differentiator |
+|------|------|-------|-------------------|
+| Circleboom | Web app | Paid | Official X partner, advanced filters |
+| Tweetsmash | Extension + web | $5/mo | Email digests, Notion/Sheets sync |
+| Dewey | Extension | Paid | Folders, annotations, sharing |
+| Twillot | Extension | Paid | Fast keyword search |
+| BookmarkSave | Extension | Free | AI categorization, multiple export formats |
+
+**PRD Implication:** Bookmark managers work with *live* data via API/extensions. Tweet-Scrolls could offer "bookmark reconstruction" from the archive ZIP without requiring API access. The archive does contain bookmarks data.
+
+### 5.7 Thread Readers & Unrollers
+
+| Tool | Method | PDF Export | Free |
+|------|--------|:----------:|:----:|
+| Thread Reader App | Twitter bot (@threadreaderapp) | Paid only | Partial |
+| TwitterShots | URL paste | ✅ Free | ✅ |
+| PingThread | URL paste | — | ✅ |
+| Thread Navigator | Chrome ext + bot | — | ✅ |
+
+**PRD Implication:** Thread reconstruction is Tweet-Scrolls' core technical capability. These tools work on *live* threads via URL. Tweet-Scrolls does it from the archive — it can reconstruct threads from deleted tweets, suspended accounts, or private archives that no live tool can access. This is a significant differentiator.
+
+### 5.8 Visualization & Network Analysis
+
+| Tool | Stars | What It Visualizes |
+|------|-------|--------------------|
+| twitter-circle | 134 | Reply/QT/DM network graph from archive |
+| x-tracker | ~10 | Real-time tweet metrics over time |
+| X-Insight | ~5 | Likes analysis + image captions via Gemini |
+| Archive Explorer | 52 | Browse/search/delete from archive |
+
+**PRD Implication:** A `--stats` or `--analyze` output mode generating JSON summary (top conversation partners, thread lengths, temporal patterns) could feed visualization tools downstream.
+
+### 5.9 Migration Tools
+
+| Tool | Stars | Destination |
+|------|-------|-------------|
+| twitter-to-bsky | 171 | Bluesky |
+| pleroma-bot | — | Fediverse/Mastodon |
+
+**PRD Implication:** A `tweet-scrolls export --bluesky` or `--mastodon` output format would position the tool as universal archive middleware.
+
+### 5.10 Deletion & Cleanup Tools
+
+| Tool | Stars | Language | Method |
+|------|-------|----------|--------|
+| twitter-cleaner | 96 | Go | API-based auto-delete from archive |
+| twitter-nuke | 89 | Python | Mass delete using archive IDs |
+| detweet | 14 | Python | Bulk tweet deletion |
+
+**PRD Implication:** Users download archives not just to preserve data but to manage their digital footprint. These tools use the archive as a source of tweet IDs for selective deletion.
+
+### 5.11 Commercial Platforms
+
+| Platform | Price | Target |
+|----------|-------|--------|
+| Tweet Archivist | $49/mo | Individuals & small teams |
+| ArchiveSocial | $500+/mo | Compliance/government |
+| Smarsh | $1,000+/mo | Enterprise compliance |
+
+**PRD Implication:** The commercial space is bifurcated: affordable individual tools ($49/mo) vs. enterprise compliance platforms ($500–1,000+/mo). None target the LLM/AI use case.
+
+### 5.12 Confirmed White Space
+
+Based on comprehensive landscape review of 50+ tools:
+
+1. **Thread-aware reconstruction from archive** — Only Tweet-Scrolls does this. `twitter-archive-parser` (2,441 stars) treats tweets atomically.
+
+2. **LLM-ready output with conversation context** — Smaug does AI analysis of bookmarks but works on live data. Fujisaki fine-tunes from archives but requires manual pipeline setup. No tool generates clean, context-rich text optimized for RAG/prompting from the archive.
+
+3. **Rust-speed CLI** — Only `twitvault` (163 stars) uses Rust in this space, and it's a desktop app, not a CLI converter. Every other tool is Python, JavaScript, or Ruby.
+
+4. **Cross-format archive input** — No tool accepts both the official archive ZIP *and* scraper outputs (JSONL from xTap, CSV from twitter-web-exporter) as input.
+
+### 5.13 Recommended PRD Features (Prioritized)
+
+1. **Multi-format output** — TXT (current), Markdown, JSON, JSONL, CSV. Markdown is the universal format for LLM context.
+
+2. **Bookmark reconstruction** — Parse bookmarks data in archive ZIP. No current tool extracts threaded bookmarks from the archive.
+
+3. **Stats/metadata JSON output** — Top conversation partners, thread lengths, temporal distribution, DM summary.
+
+4. **Prebuilt binaries via GitHub Releases** — Every successful CLI tool in this space ships downloadable binaries.
+
+5. **crates.io publication** — `cargo install tweet-scrolls` is the lowest-friction path for Rust developers.
+
+6. **Static site export** — Generate Tweetback-style HTML site. Addresses self-hosting use case (679 stars for tweetback).
+
+7. **Scraper output ingestion** — Accept JSONL/CSV from twitter-web-exporter or xTap as input.
+
+8. **Bluesky/Mastodon export format** — Migration tools show sustained demand (171 stars for twitter-to-bsky).
+
+### 5.14 Competitive Moat Assessment
+
+The Python ecosystem has overwhelming incumbent advantage in star count (twitter-archive-parser at 2,441, twarc at 1,390). Tweet-Scrolls cannot win by doing the same thing in Rust.
+
+**The moat must be built on capabilities Python tools don't offer:**
+- Thread reconstruction
+- LLM-optimized output
+- Processing speed for large archives
+
+**The strongest narrative wedge:** The "Twitter → AI" pipeline positioning — validated by Smaug's explosive 763-star growth in under 3 months.
+
+---
+
+## Part 6: Research Sources (Extended)
+
+### Twitter/X Data Ecosystem
+- GitHub: twitter-archive-parser (timhutton)
+- GitHub: twitter-web-exporter (prinsss)
+- GitHub: smaug (bookmark AI archiver)
+- GitHub: fujisaki (Twitter doppelgänger)
+- GitHub: tweetback/tweetback (self-hosted archives)
+- GitHub: twitter-circle (network visualization)
+- Community-archive.org (1M+ tweet database)
+- Chrome Web Store: Various bookmark managers
+
+### API & Scraping Landscape
+- Twitter API v2 pricing ($42K/mo Enterprise)
+- 27,453 academic studies cut off by API pricing (2023)
+- Client-side scraping as post-API workaround
+
+---
+
 ## Next Steps
 
 See **Section 1.14: 30/60/90 Day Plan** for concrete action items. High-level priorities:
