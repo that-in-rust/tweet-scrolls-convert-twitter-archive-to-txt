@@ -21,7 +21,7 @@ impl TimelineAnalyzer {
     pub fn new(events: Vec<InteractionEvent>) -> Self {
         // Ensure events are sorted by timestamp
         let mut events = events;
-        events.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
+        events.sort_by_key(|event| event.timestamp);
         TimelineAnalyzer { events }
     }
 

@@ -1,6 +1,6 @@
 [package]
 name = "tweet-scrolls"
-version = "0.1.0"
+version = "0.0.2"
 edition = "2021"
 
 [[bin]]
@@ -19,11 +19,21 @@ path = "src/bin/tweet_coverage_analysis.rs"
 name = "file-splitter"
 path = "src/bin/file_splitter.rs"
 
+[[bin]]
+name = "tweet-scrolls-mac"
+path = "src/bin/tweet_scrolls_mac.rs"
+required-features = ["gpui-app"]
+
+[features]
+default = []
+gpui-app = ["dep:gpui", "dep:gpui_platform", "dep:gpui_tokio"]
+
 [dependencies]
 anyhow = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+thiserror = "2.0"
 tokio = { version = "1.0", features = ["full"] }
 csv = "1.1"
 mimalloc = "0.1"
@@ -32,6 +42,9 @@ indicatif = "0.17"
 # CLI argument parsing (temporarily commented out due to network issues)
 # clap = { version = "4.0", features = ["derive"] }
 atty = "0.2"
+gpui = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", version = "=0.2.2", optional = true }
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", optional = true, features = ["runtime_shaders"] }
+gpui_tokio = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", optional = true }
 
 [dev-dependencies]
 tempfile = "3.0"

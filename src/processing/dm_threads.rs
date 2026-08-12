@@ -199,7 +199,7 @@ pub fn format_dm_thread_as_text(thread: &DmThread) -> String {
     
     let mut previous_timestamp: Option<chrono::DateTime<chrono::Utc>> = None;
     
-    for (i, msg) in thread.messages.iter().enumerate() {
+    for msg in &thread.messages {
         // Calculate relative timing
         let timing_info = if let (Some(current_ts), Some(prev_ts)) = (msg.timestamp, previous_timestamp) {
             let duration = current_ts.signed_duration_since(prev_ts);

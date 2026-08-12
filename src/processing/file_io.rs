@@ -8,6 +8,7 @@ use std::path::Path;
 use tokio::sync::mpsc as async_mpsc;
 
 use super::data_structures::{CsvWriter, Thread};
+use crate::thread_export::render_single_thread_block;
 
 impl CsvWriter {
     /// Runs the CSV writer, consuming records from the channel
@@ -46,7 +47,11 @@ impl CsvWriter {
     }
 
     /// Flushes the buffer to the CSV writer
-    fn flush_buffer(&self, writer: &mut CsvWriterLib<BufWriter<File>>, buffer: &mut Vec<Vec<String>>) -> Result<()> {
+    fn flush_buffer(
+        &self,
+        writer: &mut CsvWriterLib<BufWriter<File>>,
+        buffer: &mut Vec<Vec<String>>,
+    ) -> Result<()> {
         for record in buffer.drain(..) {
             writer.write_record(&record)?;
         }
@@ -55,26 +60,18 @@ impl CsvWriter {
 }
 
 /// Writes threads to a text file
-pub async fn write_threads_to_file(threads: &[Thread], screen_name: &str, timestamp: i64, output_dir: &Path) -> Result<()> {
+pub async fn write_threads_to_file(
+    threads: &[Thread],
+    screen_name: &str,
+    timestamp: i64,
+    output_dir: &Path,
+) -> Result<()> {
     let file_path = output_dir.join(format!("threads_{}_{}.txt", screen_name, timestamp));
     let file = File::create(&file_path)?;
     let mut writer = BufWriter::new(file);
 
     for thread in threads {
-        writeln!(writer, "--- Start of Thread ---")?;
-        writeln!(writer, "Thread ID: {}", thread.id)?;
-        writeln!(writer, "Timestamp: {}", thread.tweets[0].created_at)?;
-        writeln!(writer, "Public Support: {} retweets, {} likes",
-                 thread.tweets[0].retweet_count, thread.tweets[0].favorite_count)?;
-        writeln!(writer, "Thread text:")?;
-
-        for (i, tweet) in thread.tweets.iter().enumerate() {
-            writeln!(writer, "- Tweet {}:", i + 1)?;
-            writeln!(writer, "{}", tweet.full_text)?;
-            writeln!(writer)?;
-        }
-
-        writeln!(writer, "--- End of Thread ---\n")?;
+        writer.write_all(render_single_thread_block(thread)?.as_bytes())?;
     }
 
     writer.flush()?;
@@ -90,9 +87,22 @@ pub async fn write_csv(
 ) -> Result<()> {
     for thread in threads {
         let first_tweet = &thread.tweets[0];
-        let total_likes: u32 = thread.tweets.iter().filter_map(|t| t.favorite_count.parse::<u32>().ok()).sum();
-        let total_retweets: u32 = thread.tweets.iter().filter_map(|t| t.retweet_count.parse::<u32>().ok()).sum();
-        let thread_text: String = thread.tweets.iter().map(|t| t.full_text.replace('\n', " ")).collect::<Vec<_>>().join(" ");
+        let total_likes: u32 = thread
+            .tweets
+            .iter()
+            .filter_map(|t| t.favorite_count.parse::<u32>().ok())
+            .sum();
+        let total_retweets: u32 = thread
+            .tweets
+            .iter()
+            .filter_map(|t| t.retweet_count.parse::<u32>().ok())
+            .sum();
+        let thread_text: String = thread
+            .tweets
+            .iter()
+            .map(|t| t.full_text.replace('\n', " "))
+            .collect::<Vec<_>>()
+            .join(" ");
 
         let record = vec![
             thread.id.clone(),
@@ -121,10 +131,14 @@ fn prompt_input_from_reader<R: std::io::BufRead>(reader: &mut R, prompt: &str) -
 
     // Print the prompt to stdout so that interactive usage remains unchanged.
     print!("{}", prompt);
-    std::io::stdout().flush().context("Failed to flush stdout")?;
+    std::io::stdout()
+        .flush()
+        .context("Failed to flush stdout")?;
 
     let mut input = String::new();
-    reader.read_line(&mut input).context("Failed to read input")?;
+    reader
+        .read_line(&mut input)
+        .context("Failed to read input")?;
     Ok(input.trim().to_string())
 }
 
@@ -165,18 +179,18 @@ mod tests {
         let temp_dir = tempdir().unwrap();
         let csv_path = temp_dir.path().join("test.csv");
         let (_, rx) = async_mpsc::channel::<Vec<String>>(10);
-        
+
         let writer = CsvWriter::new(csv_path.to_string_lossy().to_string(), rx, 100);
         assert_eq!(writer.buffer_size, 100);
     }
 
     #[tokio::test]
     async fn test_write_threads_to_file() {
-        use super::super::data_structures::{Tweet, Thread, TweetEntities};
-        
+        use super::super::data_structures::{Thread, Tweet, TweetEntities};
+
         let temp_dir = tempdir().unwrap();
         let output_dir = temp_dir.path();
-        
+
         let tweet = Tweet {
             id_str: "123".to_string(),
             id: "123".to_string(),
@@ -188,7 +202,8 @@ mod tests {
             favorited: false,
             truncated: false,
             lang: "en".to_string(),
-            source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>".to_string(),
+            source: "<a href=\"http://twitter.com\" rel=\"nofollow\">Twitter Web App</a>"
+                .to_string(),
             display_text_range: vec!["0".to_string(), "10".to_string()],
             in_reply_to_status_id: None,
             in_reply_to_status_id_str: None,

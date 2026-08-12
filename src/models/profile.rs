@@ -43,10 +43,10 @@ impl UserProfile {
         *self.interaction_counts.entry(type_str).or_insert(0) += 1;
         
         // Update timestamps
-        if self.first_interaction.map_or(true, |t| timestamp < t) {
+        if self.first_interaction.is_none_or(|t| timestamp < t) {
             self.first_interaction = Some(timestamp);
         }
-        if self.last_interaction.map_or(true, |t| timestamp > t) {
+        if self.last_interaction.is_none_or(|t| timestamp > t) {
             self.last_interaction = Some(timestamp);
         }
     }

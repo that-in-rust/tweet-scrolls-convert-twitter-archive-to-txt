@@ -165,21 +165,21 @@ impl MvpAnalyzer {
     /// Get top relationships by interaction count
     pub fn get_top_relationships(&self, limit: usize) -> Vec<SimpleRelationship> {
         let mut relationships: Vec<SimpleRelationship> = self.relationships.values().cloned().collect();
-        relationships.sort_by(|a, b| b.interaction_count.cmp(&a.interaction_count));
+        relationships.sort_by_key(|relationship| std::cmp::Reverse(relationship.interaction_count));
         relationships.into_iter().take(limit).collect()
     }
 
     /// Get peak activity hours
     pub fn get_peak_activity_hours(&self, limit: usize) -> Vec<(u32, u32)> {
         let mut hours: Vec<(u32, u32)> = self.hourly_activity.iter().map(|(&h, &c)| (h, c)).collect();
-        hours.sort_by(|a, b| b.1.cmp(&a.1));
+        hours.sort_by_key(|hour| std::cmp::Reverse(hour.1));
         hours.into_iter().take(limit).collect()
     }
 
     /// Get most active days
     pub fn get_most_active_days(&self) -> Vec<(String, u32)> {
         let mut days: Vec<(String, u32)> = self.daily_activity.iter().map(|(d, &c)| (d.clone(), c)).collect();
-        days.sort_by(|a, b| b.1.cmp(&a.1));
+        days.sort_by_key(|day| std::cmp::Reverse(day.1));
         days
     }
 

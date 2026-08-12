@@ -4,7 +4,6 @@ use anyhow::{Result, Context};
 use std::collections::{HashMap, HashSet};
 use tokio::fs;
 use std::env;
-use chrono::Utc;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -44,7 +43,7 @@ async fn main() -> Result<()> {
     let mut retweet_count = 0;
     let mut total_tweets = 0;
 
-    let threads = create_threads_from_tweets(&all_tweets, "amuldotexe")?.into_iter().map(|thread| {
+    let threads = create_threads_from_tweets(&all_tweets, "amuldotexe")?.into_iter().inspect(|thread| {
         for tweet in &thread.tweets {
             total_tweets += 1;
             if tweet.retweeted {
@@ -58,7 +57,6 @@ async fn main() -> Result<()> {
                 println!("[PROGRESS] Processed {} tweets: {} originals, {} replies, {} retweets", total_tweets, original_tweet_count, reply_count, retweet_count);
             }
         }
-        thread
     }).collect::<Vec<_>>();
 
     println!("\n✅ Completed processing {} threads.", threads.len());
@@ -95,7 +93,7 @@ async fn main() -> Result<()> {
             max_thread_len = len;
         }
     }
-    let avg_thread_len = if threads.len() > 0 { total_thread_len as f64 / threads.len() as f64 } else { 0.0 };
+    let avg_thread_len = if !threads.is_empty() { total_thread_len as f64 / threads.len() as f64 } else { 0.0 };
     println!("Threading quality summary: Total threads: {}, Avg thread length: {:.2}, Max thread length: {}", threads.len(), avg_thread_len, max_thread_len);
     
     // Step 6: Missing tweets investigation
@@ -241,6 +239,7 @@ fn analyze_tweet_structure(tweets: &[TweetWrapper]) {
              (has_entities as f64 / tweets.len() as f64) * 100.0);
 }
 
+#[allow(dead_code)]
 fn analyze_coverage(all_tweets: &[TweetWrapper], threads: &[tweet_scrolls::processing::data_structures::Thread]) {
     // Count tweets in threads
     let mut tweets_in_threads = 0;
@@ -277,6 +276,7 @@ fn analyze_coverage(all_tweets: &[TweetWrapper], threads: &[tweet_scrolls::proce
     }
 }
 
+#[allow(dead_code)]
 fn analyze_threading_quality(all_tweets: &[TweetWrapper], threads: &[tweet_scrolls::processing::data_structures::Thread]) {
     let mut single_tweet_threads = 0;
     let mut multi_tweet_threads = 0;
@@ -379,10 +379,9 @@ fn investigate_missing_tweets(all_tweets: &[TweetWrapper], threads: &[tweet_scro
         println!("   {}. ID: {} | Created: {}", i + 1, tweet.id_str, tweet.created_at);
         println!("      Text: {}", &tweet.full_text[..tweet.full_text.len().min(100)]);
         
-        if tweet.in_reply_to_status_id_str.is_some() {
+        if let Some(reply_status_id) = &tweet.in_reply_to_status_id_str {
             missing_replies += 1;
-            println!("      Type: Reply to {}", 
-                     tweet.in_reply_to_status_id_str.as_ref().unwrap());
+            println!("      Type: Reply to {}", reply_status_id);
         } else {
             missing_originals += 1;
             println!("      Type: Original tweet");

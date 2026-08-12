@@ -391,7 +391,7 @@ mod tests {
         let result = split_file(&config)?;
         
         assert_eq!(result.output_dir, output_dir.canonicalize()?);
-        assert!(result.chunks[0].path.starts_with(&output_dir));
+        assert!(result.chunks[0].path.starts_with(&result.output_dir));
         
         Ok(())
     }

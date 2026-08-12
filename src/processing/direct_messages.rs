@@ -96,7 +96,7 @@ pub async fn process_dm_file(dm_file: &str, screen_name: &str, output_dir: &Path
         .collect();
     
     // Sort by message count (descending)
-    conversations.sort_by(|a, b| b.message_count.cmp(&a.message_count));
+    conversations.sort_by_key(|conversation| std::cmp::Reverse(conversation.message_count));
     
     println!("📊 Writing DM results...");
     
@@ -378,7 +378,7 @@ pub async fn process_dm_conversations(dm_data: &[DmWrapper], _screen_name: &str)
     }
     
     // Sort by message count (descending)
-    conversations.sort_by(|a, b| b.message_count.cmp(&a.message_count));
+    conversations.sort_by_key(|conversation| std::cmp::Reverse(conversation.message_count));
     
     Ok(conversations)
 }

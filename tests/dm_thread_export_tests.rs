@@ -2,8 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use chrono::{Utc, TimeZone};
+    use chrono::Utc;
 
     struct MockMessage {
         sender_id: String,

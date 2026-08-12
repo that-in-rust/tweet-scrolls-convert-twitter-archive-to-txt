@@ -9,7 +9,7 @@ use crate::models::interaction::{InteractionEvent, ConversationThread};
 /// The timeline is sorted in reverse chronological order (newest first)
 pub fn build_timeline(events: &mut [InteractionEvent]) -> Vec<&InteractionEvent> {
     // Sort events by timestamp in descending order (newest first)
-    events.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+    events.sort_by_key(|event| std::cmp::Reverse(event.timestamp));
     events.iter().collect()
 }
 

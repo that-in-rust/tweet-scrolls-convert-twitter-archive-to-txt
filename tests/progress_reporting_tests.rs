@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::sync::{Arc, Mutex};
-    use std::io::Write;
 
     struct MockProgressBar {
         pub messages: Arc<Mutex<Vec<String>>>,

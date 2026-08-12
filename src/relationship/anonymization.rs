@@ -2,8 +2,6 @@
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_hash_consistency() {
         let user_id = "test_user_123";

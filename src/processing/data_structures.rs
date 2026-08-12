@@ -146,7 +146,7 @@ pub struct TweetWrapper {
 }
 
 /// Represents a conversation thread
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Thread {
     /// Unique identifier for the thread (first tweet's ID)
     pub id: String,

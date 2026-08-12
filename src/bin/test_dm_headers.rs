@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
             // Show top relationships
             let results = headers_analyzer.generate_results();
             let mut relationships: Vec<_> = results.relationships.values().collect();
-            relationships.sort_by(|a, b| b.interaction_count.cmp(&a.interaction_count));
+            relationships.sort_by_key(|relationship| std::cmp::Reverse(relationship.interaction_count));
             
             println!("\n🏆 Top 5 Relationships (Headers Analysis):");
             for (i, rel) in relationships.iter().take(5).enumerate() {

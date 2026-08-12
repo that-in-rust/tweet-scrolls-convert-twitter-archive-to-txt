@@ -206,7 +206,7 @@ impl RelationshipAnalyzer {
         let _ = tweet_data; // Suppress unused parameter warning
         
         // Sort timeline chronologically (newest first)
-        timeline.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+        timeline.sort_by_key(|event| std::cmp::Reverse(event.timestamp));
         
         timeline
     }
