@@ -43,7 +43,7 @@ indicatif = "0.17"
 # clap = { version = "4.0", features = ["derive"] }
 atty = "0.2"
 gpui = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", version = "=0.2.2", optional = true }
-gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", optional = true, features = ["runtime_shaders"] }
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", optional = true, features = ["font-kit", "runtime_shaders"] }
 gpui_tokio = { git = "https://github.com/zed-industries/zed", rev = "6bd93fc3195242834f4999f3b3daab294df6b253", optional = true }
 
 [dev-dependencies]

@@ -37,6 +37,7 @@ The current repository and the local Zed reference repository were queried with 
 | GPUI Tokio `spawn_result` | One method in `gpui_tokio` | Zed `crates/gpui_tokio/src/gpui_tokio.rs:77` documents that dropping the returned task cancels its Tokio task |
 | GPUI `reveal_path` | App/platform methods exist, including macOS | Zed `crates/gpui/src/app.rs:1544` documents Finder reveal behavior |
 | GPUI tests | Test and visual-test contexts exist | Zed `crates/gpui/examples/testing.rs:215` demonstrates state, action, window, and async testing |
+| GPUI macOS text system | `gpui_macos` selects its real `MacTextSystem` only with the `font-kit` feature | Zed `crates/gpui_macos/src/platform.rs:200-210` otherwise installs `NoopTextSystem` and explicitly reports that no text will render |
 
 ### Current control flow to preserve
 
@@ -168,6 +169,7 @@ The GPUI root entity additionally owns `Option<Task<()>>` solely to retain activ
 **WHEN** `tweets.js` is readable
 **THEN** `load_archive_tweet_threads` SHALL deserialize the inclusive byte range from the first `[` through the last `]` as `Vec<TweetWrapper>`
 **AND** SHALL accept an empty JSON array
+**AND** SHALL accept records that omit presentation-only `lang`, `expanded_url`, or `display_url` fields
 **AND** SHALL return a typed `ArchiveParse` failure for missing brackets or invalid JSON
 **SHALL NOT** panic for malformed archive content.
 
@@ -325,6 +327,13 @@ The GPUI root entity additionally owns `Option<Task<()>>` solely to retain activ
 **AND** a reveal failure SHALL leave the export in `Completed`
 **SHALL NOT** alter or delete exported files.
 
+### REQ-APP-006.0: Expose primary actions accessibly
+
+**WHEN** the GPUI window renders an available primary action
+**THEN** the action SHALL expose the native button role and its visible label
+**AND** SHALL participate in keyboard tab navigation
+**SO THAT** the complete workflow is operable without coordinate-only pointing.
+
 ### REQ-CLI-001.0: Preserve CLI invocation and paths
 
 **WHEN** the default-feature CLI is built and invoked
@@ -355,6 +364,22 @@ The GPUI root entity additionally owns `Option<Task<()>>` solely to retain activ
 **AND** launching the bundle SHALL open one root window
 **SHALL** defer signing, notarization, and Mac App Store distribution.
 
+### REQ-BUILD-003.0: Render native application text
+
+**WHEN** the `gpui-app` feature resolves its macOS platform dependencies
+**THEN** `gpui_platform` SHALL enable both `font-kit` and `runtime_shaders`
+**AND** the packaged root window SHALL visibly render its title, description, status, primary action label, and local-only footer
+**SHALL NOT** resolve `gpui_macos` with `NoopTextSystem`.
+
+### REQ-E2E-001.0: Complete the real archive journey
+
+**WHEN** the packaged app selects `/Users/amuldotexe/Desktop/non-repo-yard/datasets/twitter_archive_source_data/data` containing the user-provided `tweets.js`
+**THEN** the UI SHALL visibly reach ready, full-export, optional-parts, and completed states without crashing
+**AND** SHALL create one timestamped output folder directly beneath that input folder
+**AND** `tweet-scrolls-full.txt` SHALL be non-empty valid UTF-8 containing thread boundaries
+**AND** accepting optional parts SHALL create a consecutive numbered set whose files are non-empty valid UTF-8 and each strictly smaller than 1,000,000 bytes
+**SHALL** retain the complete TXT after optional-part publication.
+
 ### REQ-PRIV-001.0: Keep archive processing local
 
 **WHEN** archive validation, full export, or optional-part export executes
@@ -372,6 +397,7 @@ Test functions use four-word semantic names. Stable `TEST-*` IDs and `REQ-*` IDs
 | REQ-ARCH-001.0 | TEST-NEG-ARCH-002 | negative | file path, missing file, and unreadable file return `InvalidArchive` and create no output | `archive_folder_validation_fails` |
 | REQ-ARCH-002.0 | TEST-UNIT-ARCH-003 | unit | JavaScript prefix/suffix around a valid array parses | `javascript_archive_parsing_succeeds` |
 | REQ-ARCH-002.0 | TEST-NEG-ARCH-004 | negative | missing brackets and malformed JSON return `ArchiveParse` without panic | `javascript_archive_parsing_fails` |
+| REQ-ARCH-002.0 | TEST-UNIT-ARCH-005 | unit | records missing language and URL presentation metadata still parse | `missing_archive_metadata_parses` |
 | REQ-CORE-001.0 | TEST-UNIT-CORE-001 | unit | flagged retweets are excluded; standalone and connected replies use current grouping and aggregates | `current_thread_semantics_match` |
 | REQ-CORE-002.0 | TEST-CHAR-CORE-002 | characterization | canonical thread/tweet ID groups and totals match the pre-extraction fixture oracle | `legacy_thread_groups_match` |
 | REQ-CORE-003.0 | TEST-NEG-CORE-003 | negative | invalid `created_at` returns tweet-scoped `InvalidTimestamp` | `invalid_timestamp_returns_error` |
@@ -401,12 +427,16 @@ Test functions use four-word semantic names. Stable `TEST-*` IDs and `REQ-*` IDs
 | REQ-APP-004.0 | TEST-GPUI-APP-006 | GPUI | full failure retains selection and retry reaches full-ready | `export_failure_retry_succeeds` |
 | REQ-APP-004.0 | TEST-GPUI-APP-007 | GPUI | parts failure offers both recovery actions and retry reaches completed | `parts_failure_retry_succeeds` |
 | REQ-APP-005.0 | TEST-GPUI-APP-008 | GPUI | reveal error leaves state completed and files unchanged | `finder_reveal_failure_nonfatal` |
+| REQ-APP-006.0 | TEST-GPUI-APP-009 | metadata | every primary action helper declares a button role, matching label, and tab stop | `primary_actions_are_accessible` |
 | REQ-CLI-001.0 | TEST-CHAR-CLI-001 | characterization | argument forms, explicit output, default path pattern, and interactive branch remain | `cli_invocation_contract_remains` |
 | REQ-CLI-002.0 | TEST-CHAR-CLI-002 | characterization | fixed fixtures preserve artifact categories, DM conditional, and split threshold | `cli_artifact_contract_remains` |
 | REQ-CLI-002.0 | TEST-INTEG-CLI-003 | integration | CLI and app core produce identical canonical thread groups | `cli_thread_semantics_match` |
 | REQ-BUILD-001.0 | TEST-BUILD-001 | build | library and CLI build without `gpui-app`; Mac binary builds with it | `gpui_feature_boundary_builds` |
 | REQ-BUILD-001.0 | TEST-META-002 | metadata | three GPUI crates resolve to one baseline and no absolute local path exists | `gpui_dependencies_revision_match` |
 | REQ-BUILD-002.0 | TEST-SMOKE-003 | smoke | packaged `.app` launches one window on macOS | `mac_app_bundle_launches` |
+| REQ-BUILD-003.0 | TEST-META-004 | metadata | macOS platform enables both native font rendering and runtime shader loading | `native_text_renderer_enabled` |
+| REQ-BUILD-003.0 | TEST-VISUAL-005 | visual | initial packaged window visibly renders all five required text regions | screenshot checkpoint `initial-readable-window` |
+| REQ-E2E-001.0 | TEST-E2E-001 | visual integration | user-provided archive reaches completed state and produces verified full and optional-part artifacts | screenshot and filesystem evidence packet |
 | REQ-PRIV-001.0 | TEST-STATIC-PRIV-001 | static | new export/Mac modules contain no HTTP or transport imports/calls | `export_modules_network_free` |
 
 ### Fixture packet
@@ -617,7 +647,9 @@ Large part-planning inputs should be generated synthetically in tests so megabyt
 
 **VERIFY**
 
-- Launch the bundle, select a synthetic archive, produce full TXT, exercise both parts choices, reveal the folder, and rerun CLI fixtures.
+- Launch the bundle and first verify title, description, status, action, and footer glyphs are visible.
+- Select the user-provided real archive directory, produce full TXT, accept optional parts, verify every generated artifact, and capture screenshots at each stable UI state.
+- Exercise synthetic invalid-input and decline paths separately, then rerun CLI fixtures.
 
 ### Four-word implementation names
 
@@ -690,6 +722,7 @@ cargo clippy --all-targets --all-features
 ### Dependency and privacy gate
 
 - [ ] `cargo metadata` shows `gpui`, `gpui_platform`, and `gpui_tokio` on one compatible source revision.
+- [ ] `cargo tree --features gpui-app -e features -i gpui_macos` shows both `gpui_macos/font-kit` and `gpui_macos/runtime_shaders`.
 - [ ] No committed dependency contains the absolute local Zed checkout path.
 - [ ] Static search of new modules finds no HTTP client, socket, telemetry, analytics, or upload API.
 - [ ] Synthetic fixtures contain no real Twitter archive content, personal handle, DM, token, or credential.
@@ -702,15 +735,25 @@ Before declaring v0.0.2 complete, record:
 - The final requirement-to-test coverage report.
 - One `cargo metadata` excerpt proving the feature/dependency boundary.
 - The `.app` bundle path and launch smoke result.
+- Screenshots proving readable initial, ready, full-export, optional-parts, and completed states.
 - The fixed fixture's CLI artifact list and GPUI artifact list.
 - Byte sizes and UTF-8-read results for a generated multi-part export.
 
+### Recorded release evidence (2026-08-12)
+
+- `cargo test --features gpui-app --all-targets` exited 0 with 176 passing tests and no failures.
+- `cargo clippy --features gpui-app --all-targets -- -D warnings` exited 0.
+- `rustfmt --check` on every modified Rust source/test and `git diff --check` both exited 0.
+- The packaged app launched from `target/release/bundle/osx/Tweet Scrolls.app` with readable text and accessible primary buttons.
+- The six visual checkpoints are stored in the task visualization folder `tweet-scrolls-e2e/`, from initial launch through completion.
+- The real archive completed with 49,884 thread blocks in `data/tweet-scrolls-1786537877028`.
+- `tweet-scrolls-full.txt` is valid UTF-8 and 16,480,452 bytes; its start/end boundary counts are both 49,884.
+- All 17 numbered part files are consecutive, non-empty valid UTF-8; the largest is 999,992 bytes.
+- The output folder contains no unexpected file or `.partial` artifact.
+
 ## Open Questions
 
-No open question blocks core implementation. Two release-level decisions remain:
-
-1. **Version label:** `Cargo.toml` currently declares `0.1.0`, while this product milestone is called v0.0.2. Decide before tagging whether v0.0.2 is a product milestone only or whether the Cargo package version should also change.
-2. **Bundle identity:** choose the final `.app` display name and reverse-DNS bundle identifier before the packaging slice. The executable name remains `tweet-scrolls-mac` unless packaging evidence requires otherwise.
+No open question blocks v0.0.2. The package version is `0.0.2`; the app display name is `Tweet Scrolls`; the bundle identifier is `com.amuldotexe.tweetscrolls`; and the executable remains `tweet-scrolls-mac`.
 
 The following are explicitly closed decisions, not open questions:
 

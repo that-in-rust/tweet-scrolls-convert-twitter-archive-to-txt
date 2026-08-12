@@ -5,7 +5,7 @@ use std::{mem, path::PathBuf};
 use chrono::Utc;
 use gpui::{
     div, prelude::*, px, rgb, size, App, Bounds, Context, PathPromptOptions, PromptLevel, Render,
-    Task, Window, WindowBounds, WindowOptions,
+    Role, Task, Window, WindowBounds, WindowOptions,
 };
 use gpui_platform::application;
 use gpui_tokio::Tokio;
@@ -278,7 +278,7 @@ impl Render for TweetScrollsMacView {
                     .gap_3()
                     .when(can_select, |buttons| {
                         buttons.child(
-                            action_button_element("select-archive", "Choose Archive Folder")
+                            build_primary_action_button("select-archive", "Choose Archive Folder")
                                 .on_click(cx.listener(|this, _, window, cx| {
                                     this.request_archive_folder_selection(window, cx);
                                 })),
@@ -286,7 +286,7 @@ impl Render for TweetScrollsMacView {
                     })
                     .when(can_export, |buttons| {
                         buttons.child(
-                            action_button_element("create-full", "Create Full TXT").on_click(
+                            build_primary_action_button("create-full", "Create Full TXT").on_click(
                                 cx.listener(|this, _, window, cx| {
                                     this.start_background_export_task(window, cx);
                                 }),
@@ -295,7 +295,7 @@ impl Render for TweetScrollsMacView {
                     })
                     .when(can_parts, |buttons| {
                         buttons.child(
-                            action_button_element("create-parts", "Create <1 MB Parts").on_click(
+                            build_primary_action_button("create-parts", "Create <1 MB Parts").on_click(
                                 cx.listener(|this, _, window, cx| {
                                     this.start_background_parts_task(window, cx);
                                 }),
@@ -304,7 +304,7 @@ impl Render for TweetScrollsMacView {
                     })
                     .when(can_keep, |buttons| {
                         buttons.child(
-                            action_button_element("keep-full", "Keep Full Only").on_click(
+                            build_primary_action_button("keep-full", "Keep Full Only").on_click(
                                 cx.listener(|this, _, _window, cx| {
                                     this.keep_complete_output_only(cx);
                                 }),
@@ -313,7 +313,7 @@ impl Render for TweetScrollsMacView {
                     })
                     .when(can_reveal, |buttons| {
                         buttons.child(
-                            action_button_element("reveal-output", "Show in Finder").on_click(
+                            build_primary_action_button("reveal-output", "Show in Finder").on_click(
                                 cx.listener(|this, _, _window, cx| {
                                     this.reveal_completed_output_folder(cx);
                                 }),
@@ -322,7 +322,7 @@ impl Render for TweetScrollsMacView {
                     })
                     .when(can_reset, |buttons| {
                         buttons.child(
-                            action_button_element("convert-another", "Convert Another").on_click(
+                            build_primary_action_button("convert-another", "Convert Another").on_click(
                                 cx.listener(|this, _, _window, cx| {
                                     this.reset_another_archive_choice(cx);
                                 }),
@@ -339,12 +339,15 @@ impl Render for TweetScrollsMacView {
     }
 }
 
-fn action_button_element(
+fn build_primary_action_button(
     identifier: &'static str,
     label: &'static str,
 ) -> gpui::Stateful<gpui::Div> {
     div()
         .id(identifier)
+        .role(Role::Button)
+        .aria_label(label)
+        .tab_index(0)
         .cursor_pointer()
         .rounded_md()
         .px_4()

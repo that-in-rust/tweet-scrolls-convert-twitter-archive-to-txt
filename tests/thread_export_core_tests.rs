@@ -123,6 +123,38 @@ async fn javascript_archive_parsing_succeeds() -> anyhow::Result<()> {
     Ok(())
 }
 
+// TEST-UNIT-ARCH-005 / REQ-ARCH-002.0
+#[tokio::test]
+async fn missing_archive_metadata_parses() -> anyhow::Result<()> {
+    let temporary = tempdir()?;
+    let mut tweet = serde_json::to_value(create_archive_fixture_tweet(
+        "1",
+        "Mon Jan 01 12:00:00 +0000 2024",
+        None,
+        false,
+    ))?;
+    tweet["entities"]["urls"] = serde_json::json!([{
+        "url": "https://t.co/example",
+        "indices": ["0", "20"]
+    }]);
+    tweet
+        .as_object_mut()
+        .expect("serialized tweet fixture must be an object")
+        .remove("lang");
+    let script = format!(
+        "window.YTD.tweets.part0 = {};\n",
+        serde_json::to_string(&vec![serde_json::json!({ "tweet": tweet })])?
+    );
+    tokio::fs::write(temporary.path().join("tweets.js"), script).await?;
+    let archive = validate_archive_tweets_input(temporary.path())?;
+
+    let prepared = load_archive_tweet_threads(&archive).await?;
+
+    assert_eq!(prepared.source_tweet_count(), 1);
+    assert_eq!(prepared.threads()[0].tweets[0].entities.urls.len(), 1);
+    Ok(())
+}
+
 // TEST-NEG-ARCH-004 / REQ-ARCH-002.0
 #[tokio::test]
 async fn javascript_archive_parsing_fails() -> anyhow::Result<()> {

@@ -16,7 +16,7 @@ fn gpui_feature_boundary_builds() {
     assert!(manifest.contains("name = \"tweet-scrolls-mac\""));
     assert!(manifest.contains("required-features = [\"gpui-app\"]"));
     assert!(manifest.contains("optional = true"));
-    assert!(manifest.contains("features = [\"runtime_shaders\"]"));
+    assert!(manifest.contains("features = [\"font-kit\", \"runtime_shaders\"]"));
 }
 
 // TEST-META-002 / REQ-BUILD-001.0
@@ -26,6 +26,18 @@ fn gpui_dependencies_revision_match() {
 
     assert_eq!(manifest.matches(ZED_GPUI_REVISION).count(), 3);
     assert!(!manifest.contains("/Users/amuldotexe/Desktop/oss-read-only/zed-gpui"));
+}
+
+// TEST-META-004 / REQ-BUILD-003.0
+#[test]
+fn native_text_renderer_enabled() {
+    let manifest = read_cargo_manifest_text();
+    let platform_dependency = manifest
+        .lines()
+        .find(|line| line.starts_with("gpui_platform = "))
+        .expect("the GPUI app must declare its platform dependency");
+
+    assert!(platform_dependency.contains("features = [\"font-kit\", \"runtime_shaders\"]"));
 }
 
 // TEST-BUILD-001 / REQ-BUILD-001.0

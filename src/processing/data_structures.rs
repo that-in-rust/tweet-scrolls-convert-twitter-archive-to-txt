@@ -25,12 +25,13 @@ pub struct Tweet {
     /// Whether the tweet was truncated in the original response
     pub truncated: bool,
     /// Language code of the tweet
+    #[serde(default)]
     pub lang: String,
     /// Source application used to post the tweet
     pub source: String,
     /// Display range indices for the tweet text
     pub display_text_range: Vec<String>,
-    
+
     /// ID of the tweet being replied to (if this is a reply)
     pub in_reply_to_status_id: Option<String>,
     /// String representation of the tweet being replied to
@@ -41,14 +42,14 @@ pub struct Tweet {
     pub in_reply_to_user_id_str: Option<String>,
     /// Screen name of the user being replied to
     pub in_reply_to_screen_name: Option<String>,
-    
+
     /// Edit information for the tweet (may be missing in older tweets)
     #[serde(default)]
     pub edit_info: Option<EditInfo>,
-    
+
     /// Tweet entities like mentions, hashtags, URLs (always present, but may be empty)
     pub entities: TweetEntities,
-    
+
     /// Whether the tweet contains sensitive content
     #[serde(default)]
     pub possibly_sensitive: Option<bool>,
@@ -131,8 +132,10 @@ pub struct TweetUrl {
     /// Shortened URL as it appears in the tweet
     pub url: String,
     /// Full expanded URL
+    #[serde(default)]
     pub expanded_url: String,
     /// Display version of the URL
+    #[serde(default)]
     pub display_url: String,
     /// Position indices in the tweet text where this URL appears
     pub indices: Vec<String>,
@@ -187,7 +190,11 @@ pub struct CsvWriter {
 
 impl CsvWriter {
     /// Creates a new CsvWriter instance
-    pub fn new(output_path: String, receiver: async_mpsc::Receiver<Vec<String>>, buffer_size: usize) -> Self {
+    pub fn new(
+        output_path: String,
+        receiver: async_mpsc::Receiver<Vec<String>>,
+        buffer_size: usize,
+    ) -> Self {
         Self {
             output_path,
             receiver,
@@ -195,4 +202,3 @@ impl CsvWriter {
         }
     }
 }
-
